@@ -1,0 +1,3 @@
+# D3-Graphs
+Different graphs made using D3 to visualize my suicide data-set.
+Work in progress...

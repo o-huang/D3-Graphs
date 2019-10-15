@@ -1,0 +1,32 @@
+.bar {
+  fill: #f95d6a;
+}
+
+.highlight {
+  fill: #a05195;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #003f5c;
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: #ffa600;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 30px;
+}
+
+li a:hover {
+  background-color: #bc5090;
+}
