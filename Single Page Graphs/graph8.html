@@ -1,0 +1,141 @@
+<html>
+
+<head>
+  <title>Suicide Graphs</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="toolbar">
+    <ul>
+      <li><a onclick="location.href = 'graph1.html';">Bivariate Scatterplot</a></li>
+      <li><a onclick="location.href = 'graph2.html';">10×10 Correlation Matrix </a></li>
+      <li><a onclick="location.href = 'graph3.html';">5×5 Scatter Plot Matrix </a></li>
+      <li><a onclick="location.href = 'graph4.html';">Parallel Coordinates Display With 10 Axes</a></li>
+      <li><a onclick="location.href = 'graph5.html';">PCA Plot</a></li>
+      <li><a onclick="location.href = 'graph6.html';">Biplot With 10 Projected Axes</a></li>
+      <li><a onclick="location.href = 'graph7.html';">MDS Display Of The Data</a></li>
+      <li><a onclick="location.href = 'graph8.html';">MDS Display Of The Attributes</a></li>
+    </ul>
+    <div />
+    <svg width="2000" height="1200"></svg>
+    <script>
+      var svg = d3.select("svg")
+      makeMds(svg)
+
+      function makeMds(svg) {
+        var svg = d3.select("svg"),
+          margin = 400,
+          width = svg.attr("width") - margin,
+          height = svg.attr("height") - margin;
+
+        svg.append("text")
+          .attr("class", "titletext")
+          .attr("transform", "translate(300,0)")
+          .attr("text-anchor", "middle")
+          .attr("x", margin + 200)
+          .attr("y", 50)
+          .attr("font-size", "40px")
+          .style("text-decoration", "underline")
+          .text("MDS Display(Correlation Distance)")
+
+        var x = d3.scaleLinear().range([0, width]);
+        y = d3.scaleLinear().range([height, 0]);
+
+        var g = svg.append("g")
+          .attr("transform", "translate(" + 150 + "," + 100 + ")");
+
+        d3.csv("data/mds_cosine_data.csv", function(error, data) {
+          if (error) {
+            throw error;
+          }
+
+
+          var xmax = d3.max(data, function(d) {
+            return +d.mds1;
+          });
+          var xmin = d3.min(data, function(d) {
+            return +d.mds1;
+          });
+
+
+          x.domain([xmin, xmax])
+
+          var max = d3.max(data, function(d) {
+            return +d.mds2;
+          });
+          var min = d3.min(data, function(d) {
+            return +d.mds2;
+          });
+          y.domain([min, max]);
+
+          g.append("g")
+            .attr("class", "xstuff")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+
+          g.append("text")
+            .attr("class", "xname")
+            .attr("y", height + 150)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Component 1")
+
+          g.append("g")
+            .attr("class", "ystuff")
+            .call(d3.axisLeft(y).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "yname")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0)
+            .attr("x", -350)
+            .attr("dy", "-5.1em")
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Component 2");
+
+          g.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 7)
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(2000)
+            .attr("cx", function(d) {
+
+              return x(parseFloat(d.mds1));
+            })
+            .attr("cy", function(d) {
+              return y(parseFloat(d.mds2));
+            })
+            .style("fill", function(d) {
+              return "#fb8122"
+            });
+
+
+        });
+      }
+    </script>
+</body>
+
+</html>

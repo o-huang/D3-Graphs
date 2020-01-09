@@ -1,0 +1,117 @@
+<html>
+
+<head>
+  <title>Suicide Graphs</title>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<style>
+  svg {
+    font-size: 15px;
+  }
+
+  .drawLine path {
+    fill: none;
+    stroke: #fb8122;
+  }
+</style>
+
+<body>
+  <div class="toolbar">
+    <ul>
+      <li><a onclick="location.href = 'graph1.html';">Bivariate Scatterplot</a></li>
+      <li><a onclick="location.href = 'graph2.html';">10×10 Correlation Matrix </a></li>
+      <li><a onclick="location.href = 'graph3.html';">5×5 Scatter Plot Matrix </a></li>
+      <li><a onclick="location.href = 'graph4.html';">Parallel Coordinates Display With 10 Axes</a></li>
+      <li><a onclick="location.href = 'graph5.html';">PCA Plot</a></li>
+      <li><a onclick="location.href = 'graph6.html';">Biplot With 10 Projected Axes</a></li>
+      <li><a onclick="location.href = 'graph7.html';">MDS Display Of The Data</a></li>
+      <li><a onclick="location.href = 'graph8.html';">MDS Display Of The Attributes</a></li>
+    </ul>
+    <div />
+    <div id="age-tag">
+      <h5>Age Key: 1 = Age 5-14, 2 = Age 15-24, 3 = Age 25-34, 4 = Age 35-54, 5 = Age 55-74, 6 = Age 75+</h5>
+    </div>
+    <script>
+      var padding = {
+          top_padding: 50,
+          right_padding: 10,
+          bottom_padding: 20,
+          left_padding: 10
+        },
+        width = 1500,
+        height = 700;
+
+      var x = d3.scale.ordinal().rangePoints([0, width], 1),
+        varX = {},
+        hashTable = {};
+
+      var line = d3.svg.line()
+      var lineVar = d3.svg.axis().orient("right");
+
+      var svg = d3.select("body").append("svg")
+        .attr("width", width + padding.left_padding + padding.right_padding)
+        .attr("height", height + padding.top_padding + padding.bottom_padding)
+        .append("g")
+        .attr("transform", "translate(" + padding.left_padding + "," + padding.top_padding + ")");
+
+      d3.csv("data/parallel_coordinates_data.csv", function(error, data) {
+
+        x.domain(dimensions = d3.keys(data[0]).filter(function(d) {
+          return (varX[d] = d3.scale.linear()
+            .domain(d3.extent(data, function(z) {
+              return +z[d];
+            }))
+            .range([height, 0]));
+        }));
+
+        drawLine = svg.append("g")
+          .attr("class", "drawLine")
+          .selectAll("path")
+          .data(data)
+          .enter()
+          .append("path")
+          .attr("d", connectAttr);
+
+        var g = svg.selectAll(".attr")
+          .data(dimensions)
+          .enter()
+          .append("g")
+          .attr("transform", function(d) {
+            return "translate(" + x(d) + ")";
+          })
+
+        g.append("g")
+          .each(function(d) {
+            d3.select(this).call(lineVar.scale(varX[d]));
+          })
+          .append("text")
+          .attr("font-size", "20px")
+          .style("text-anchor", "middle")
+          .attr("y", -15)
+          .text(function(d) {
+            return d;
+          });
+
+      });
+
+      function getPos(d) {
+        var varR = hashTable[d];
+        if (varR == null) {
+          return x(d)
+        } else {
+          return varR
+        }
+      }
+
+      function connectAttr(d) {
+        return line(dimensions.map(function(p) {
+          var x = [getPos(p), varX[p](d[p])]
+          return x ;
+        }));
+      }
+    </script>
+</body>
+
+</html>

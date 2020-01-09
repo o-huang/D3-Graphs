@@ -1,0 +1,700 @@
+  <!doctype html>
+  <html>
+
+  <head>
+    <title>Graphs</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+
+  <body>
+    <div class="toolbar">
+      <div>
+        <ul class="colorkey">
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 5-14 years old" />
+              <div class="color-box" style="background-color: #ffa600;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 15-24 years old" />
+              <div class="color-box" style="background-color: #ff6e54;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 25-34 years old" />
+              <div class="color-box" style="background-color: #dd5182;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 35-54 years old" />
+              <div class="color-box" style="background-color: #955196;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 55-74 years old" />
+              <div class="color-box" style="background-color: #444e86;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Age Group: 75+ years old" />
+              <div class="color-box" style="background-color: #003f5c;"></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+
+      <div>
+        <ul class="colorkey">
+          <li>
+            <div class="input-color">
+              <input type="text" value="Blue Circle For Men" />
+              <div class="color-box" style="background-color: blue;"></div>
+            </div>
+          </li>
+          <li>
+            <div class="input-color">
+              <input type="text" value="Red Circle For Women" />
+              <div class="color-box" style="background-color: red;"></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <svg width="2000" height="1200" id="svg1"></svg>
+    <svg width="2000" height="1200" id="svg2"></svg>
+    <svg width="2000" height="1200" id="svg3"></svg>
+    <svg width="2000" height="1200" id="svg4"></svg>
+    <script>
+      makeBar()
+
+      function makeBar() {
+        var svg1 = d3.select("#svg1"),
+          margin = 400,
+          width = svg1.attr("width") - margin,
+          height = svg1.attr("height") - margin;
+
+        svg1.append("text")
+          .attr("class", "titletext")
+          .attr("transform", "translate(300,0)")
+          .attr("text-anchor", "middle")
+          .attr("x", margin + 200)
+          .attr("y", 50)
+          .attr("font-size", "40px")
+          .style("text-decoration", "underline")
+          .text("Suicide Numbers By Age")
+
+        var x = d3.scaleBand().range([0, width]).padding(0.4);
+        y = d3.scaleLinear().range([height, 0]);
+
+        var g = svg1.append("g")
+          .attr("transform", "translate(" + 150 + "," + 100 + ")");
+
+        d3.csv("data/age_suicide_no_2000_2010.csv", function(error, data) {
+          if (error) {
+            throw error;
+          }
+          x.domain(data.map(function(d) {
+            return d.age;
+          }));
+          var max = d3.max(data, function(d) {
+            return +d.suicides_no;
+          });
+          y.domain([0, max]);
+
+          g.append("g")
+            .attr("class", "xstuff")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "xname")
+            .attr("y", height + 150)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Age Group")
+
+          g.append("g")
+            .attr("class", "ystuff")
+            .call(d3.axisLeft(y).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "yname")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0)
+            .attr("x", -350)
+            .attr("dy", "-5.1em")
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Sucide Number");
+
+
+
+          g.selectAll(".bar")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .on("mouseover", function(d) {
+              onMouseOver(data, d.age);
+            }) //On selection of bar elements, two new event handlers added, viz. mouseover and mouseout and we are calling the respective functions to handle mouse events
+            .on("mouseout", onMouseOut) //done to apply animation when mouse hovers over a particular bar and goes out
+            .attr("x", function(d) {
+              return x(d.age);
+            })
+            .attr("y", function(d) {
+              return y(d.suicides_no);
+            })
+            .style("fill", function(d) {
+              if (d.age == 1) {
+                return "#ffa600"
+              }
+              if (d.age == 2) {
+                return "#ff6e54"
+              }
+              if (d.age == 3) {
+                return "#dd5182"
+              }
+              if (d.age == 4) {
+                return "#955196"
+              }
+              if (d.age == 5) {
+                return "#444e86"
+              }
+              if (d.age == 6) {
+                return "#003f5c"
+              }
+            })
+            .attr("width", x.bandwidth())
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .delay(function(d, i) {
+              return i * 50;
+            })
+            .attr("height", function(d) {
+              return height - y(d.suicides_no);
+            });
+
+        });
+
+      }
+      //-------------------------------------------------------------------------
+      makeGraph2()
+
+      function makeGraph2() {
+
+        svg = d3.select("#svg2"),
+          margin = 400,
+          width = svg.attr("width") - margin,
+          height = svg.attr("height") - margin;
+
+        svg.append("text")
+          .attr("class", "titletext")
+          .attr("transform", "translate(300,0)")
+          .attr("text-anchor", "middle")
+          .attr("x", margin + 200)
+          .attr("y", 50)
+          .attr("font-size", "40px")
+          .style("text-decoration", "underline")
+          .text("Population Vs. Suicide Number Scatter Plot")
+
+        var x = d3.scaleLinear().range([0, width]);
+        y = d3.scaleLinear().range([height, 0]);
+
+        var g = svg.append("g")
+          .attr("transform", "translate(" + 150 + "," + 100 + ")");
+
+        d3.csv("data/United_States_suicide_no_2000_2010.csv", function(error, data) {
+          if (error) {
+            throw error;
+          }
+          var xmax = d3.max(data, function(d) {
+            return d.Population;
+          });
+
+          x.domain([5000000, 45000000])
+
+          var max = d3.max(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          var min = d3.min(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          y.domain([min, max]);
+
+          g.append("g")
+            .attr("class", "xstuff")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "xname")
+            .attr("y", height + 150)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Population")
+
+          g.append("g")
+            .attr("class", "ystuff")
+            .call(d3.axisLeft(y).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "yname")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0)
+            .attr("x", -350)
+            .attr("dy", "-5.1em")
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Suicide Numbers");
+
+          g.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 7)
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(2000)
+            .attr("cx", function(d) {
+
+              return x(d.Population);
+            })
+            .attr("cy", function(d) {
+              return y(d.Suicide_Number);
+            })
+            .style("fill", function(d) {
+              if (d.Age == 1) {
+                return "#ffa600"
+              }
+              if (d.Age == 2) {
+                return "#ff6e54"
+              }
+              if (d.Age == 3) {
+                return "#dd5182"
+              }
+              if (d.Age == 4) {
+                return "#955196"
+              }
+              if (d.Age == 5) {
+                return "#444e86"
+              }
+              if (d.Age == 6) {
+                return "#003f5c"
+              }
+            })
+        });
+      }
+
+      //-------------------------------------------------------------------------
+      makeGraph()
+
+      function makeGraph() {
+
+        svg = d3.select("#svg3"),
+          margin = 400,
+          width = svg.attr("width") - margin,
+          height = svg.attr("height") - margin;
+
+        svg.append("text")
+          .attr("class", "titletext")
+          .attr("transform", "translate(300,0)")
+          .attr("text-anchor", "middle")
+          .attr("x", margin + 200)
+          .attr("y", 50)
+          .attr("font-size", "40px")
+          .style("text-decoration", "underline")
+          .text("Year Vs. Suicide Number Scatter Plot")
+
+        var x = d3.scaleLinear().range([0, width]);
+        y = d3.scaleLinear().range([height, 0]);
+
+        var g = svg.append("g")
+          .attr("transform", "translate(" + 150 + "," + 100 + ")");
+
+        d3.csv("data/United_States_suicide_no_2000_2010.csv", function(error, data) {
+          if (error) {
+            throw error;
+          }
+          var xmax = d3.max(data, function(d) {
+            return d.Year;
+          });
+
+
+
+          x.domain([2000, 2010])
+
+          var max = d3.max(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          var min = d3.min(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          y.domain([min, max]);
+
+          g.append("g")
+            .attr("class", "xstuff")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "xname")
+            .attr("y", height + 150)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Year")
+
+          g.append("g")
+            .attr("class", "ystuff")
+            .call(d3.axisLeft(y).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "yname")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0)
+            .attr("x", -350)
+            .attr("dy", "-5.1em")
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Suicide Numbers");
+
+          g.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 7)
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(2000)
+            .attr("cx", function(d) {
+              console.log(d.Year)
+              return x(d.Year);
+            })
+            .attr("cy", function(d) {
+              return y(d.Suicide_Number);
+            })
+            .style("fill", function(d) {
+              if (d.Age == 1) {
+                return "#ffa600"
+              }
+              if (d.Age == 2) {
+                return "#ff6e54"
+              }
+              if (d.Age == 3) {
+                return "#dd5182"
+              }
+              if (d.Age == 4) {
+                return "#955196"
+              }
+              if (d.Age == 5) {
+                return "#444e86"
+              }
+              if (d.Age == 6) {
+                return "#003f5c"
+              }
+            })
+        });
+      }
+
+      //-------------------------------------------------------------------------
+      makeGraph3()
+
+      function makeGraph3() {
+
+        svg = d3.select("#svg4"),
+          margin = 400,
+          width = svg.attr("width") - margin,
+          height = svg.attr("height") - margin;
+
+        svg.append("text")
+          .attr("class", "titletext")
+          .attr("transform", "translate(300,0)")
+          .attr("text-anchor", "middle")
+          .attr("x", margin + 200)
+          .attr("y", 50)
+          .attr("font-size", "40px")
+          .style("text-decoration", "underline")
+          .text("GdpPerCapital Vs. Suicide Number Scatter Plot")
+
+        var x = d3.scaleLinear().range([0, width]);
+        y = d3.scaleLinear().range([height, 0]);
+
+        var g = svg.append("g")
+          .attr("transform", "translate(" + 150 + "," + 100 + ")");
+
+        d3.csv("data/United_States_suicide_no_2000_2010.csv", function(error, data) {
+          if (error) {
+            throw error;
+          }
+          var xmax = d3.max(data, function(d) {
+            return d.GdpPerCapital;
+          });
+
+
+
+          x.domain([39000, 53000])
+
+          var max = d3.max(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          var min = d3.min(data, function(d) {
+            return +d.Suicide_Number;
+          });
+          y.domain([min, max]);
+
+          g.append("g")
+            .attr("class", "xstuff")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "xname")
+            .attr("y", height + 150)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("GdpPerCapital")
+
+          g.append("g")
+            .attr("class", "ystuff")
+            .call(d3.axisLeft(y).tickFormat(function(d) {
+              return d;
+            }).ticks(10))
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          g.append("text")
+            .attr("class", "yname")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0)
+            .attr("x", -350)
+            .attr("dy", "-5.1em")
+            .attr("font-size", "20px")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .style("text-anchor", "middle")
+            .text("Suicide Numbers");
+
+          g.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 7)
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(2000)
+            .attr("cx", function(d) {
+              console.log(d.GdpPerCapital)
+              return x(d.GdpPerCapital);
+            })
+            .attr("cy", function(d) {
+              return y(d.Suicide_Number);
+            })
+            .style("fill", function(d) {
+              if (d.Age == 1) {
+                return "#ffa600"
+              }
+              if (d.Age == 2) {
+                return "#ff6e54"
+              }
+              if (d.Age == 3) {
+                return "#dd5182"
+              }
+              if (d.Age == 4) {
+                return "#955196"
+              }
+              if (d.Age == 5) {
+                return "#444e86"
+              }
+              if (d.Age == 6) {
+                return "#003f5c"
+              }
+            })
+        });
+      }
+      //-------------------------------------------------------------------
+      function onMouseOver(data, age) {
+
+        var yearScatter = d3.select("#svg2")
+        yearScatter.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == age) {
+              if (d.Sex == "male") {
+                return "blue"
+              } else {
+                return "red"
+              }
+            } else {
+              return "transparent"
+            }
+          })
+
+        var yearScatter1 = d3.select("#svg3")
+        yearScatter1.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == age) {
+              if (d.Sex == "male") {
+                return "blue"
+              } else {
+                return "red"
+              }
+            } else {
+              return "transparent"
+            }
+          })
+
+        var yearScatter2 = d3.select("#svg4")
+        yearScatter2.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == age) {
+              if (d.Sex == "male") {
+                return "blue"
+              } else {
+                return "red"
+              }
+            } else {
+              return "transparent"
+            }
+          })
+
+
+      }
+
+      function onMouseOut() {
+        var yearScatter = d3.select("#svg2")
+        yearScatter.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == 1) {
+              return "#ffa600"
+            }
+            if (d.Age == 2) {
+              return "#ff6e54"
+            }
+            if (d.Age == 3) {
+              return "#dd5182"
+            }
+            if (d.Age == 4) {
+              return "#955196"
+            }
+            if (d.Age == 5) {
+              return "#444e86"
+            }
+            if (d.Age == 6) {
+              return "#003f5c"
+            }
+          })
+
+        var yearScatter1 = d3.select("#svg3")
+        yearScatter1.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == 1) {
+              return "#ffa600"
+            }
+            if (d.Age == 2) {
+              return "#ff6e54"
+            }
+            if (d.Age == 3) {
+              return "#dd5182"
+            }
+            if (d.Age == 4) {
+              return "#955196"
+            }
+            if (d.Age == 5) {
+              return "#444e86"
+            }
+            if (d.Age == 6) {
+              return "#003f5c"
+            }
+          })
+
+        var yearScatter2 = d3.select("#svg4")
+        yearScatter2.selectAll("circle")
+          .style("fill", function(d) {
+            if (d.Age == 1) {
+              return "#ffa600"
+            }
+            if (d.Age == 2) {
+              return "#ff6e54"
+            }
+            if (d.Age == 3) {
+              return "#dd5182"
+            }
+            if (d.Age == 4) {
+              return "#955196"
+            }
+            if (d.Age == 5) {
+              return "#444e86"
+            }
+            if (d.Age == 6) {
+              return "#003f5c"
+            }
+          })
+
+      }
+    </script>
+
+
+
+
+
+  </body>
+
+  </html>

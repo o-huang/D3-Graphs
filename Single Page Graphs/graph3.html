@@ -1,0 +1,237 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Suicide Graphs</title>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<style>
+  svg {
+    font-size: 10px;
+    padding: : 10px;
+  }
+
+  .axis path {
+    display: none;
+  }
+
+  .box {
+    fill: none;
+    stroke: #aaa;
+  }
+</style>
+
+<body>
+  <div class="toolbar">
+    <ul>
+      <li><a onclick="location.href = 'graph1.html';">Bivariate Scatterplot</a></li>
+      <li><a onclick="location.href = 'graph2.html';">10×10 Correlation Matrix </a></li>
+      <li><a onclick="location.href = 'graph3.html';">5×5 Scatter Plot Matrix </a></li>
+      <li><a onclick="location.href = 'graph4.html';">Parallel Coordinates Display With 10 Axes</a></li>
+      <li><a onclick="location.href = 'graph5.html';">PCA Plot</a></li>
+      <li><a onclick="location.href = 'graph6.html';">Biplot With 10 Projected Axes</a></li>
+      <li><a onclick="location.href = 'graph7.html';">MDS Display Of The Data</a></li>
+      <li><a onclick="location.href = 'graph8.html';">MDS Display Of The Attributes</a></li>
+    </ul>
+
+    <div />
+    <ul class="colorkey">
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 5-14 years old" />
+          <div class="color-box" style="background-color: #ffa600;"></div>
+        </div>
+      </li>
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 15-24 years old" />
+          <div class="color-box" style="background-color: #ff6e54;"></div>
+        </div>
+      </li>
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 25-34 years old" />
+          <div class="color-box" style="background-color: #dd5182;"></div>
+        </div>
+      </li>
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 35-54 years old" />
+          <div class="color-box" style="background-color: #955196;"></div>
+        </div>
+      </li>
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 55-74 years old" />
+          <div class="color-box" style="background-color: #444e86;"></div>
+        </div>
+      </li>
+      <li>
+        <div class="input-color">
+          <input type="text" value="Age Group: 75+ years old" />
+          <div class="color-box" style="background-color: #003f5c;"></div>
+        </div>
+      </li>
+    </ul>
+    <div />
+
+    <script>
+      var width = 1500
+      var graphSize = 300
+      var spaceBetweenGraph = 70
+
+      var x = d3.scale.linear()
+        .range([35, 265]);
+
+      var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .ticks(5);
+
+      var y = d3.scale.linear()
+        .range([graphSize - spaceBetweenGraph / 2, spaceBetweenGraph / 2]);
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(5);
+
+      d3.csv("data/scatter_plot_matrix_data.csv", function(error, data) {
+        var myArray = {}
+        var myAttr = d3.keys(data[0])
+        var n = myAttr.length
+
+        xAxis.tickSize(graphSize * n);
+        yAxis.tickSize(-graphSize * n);
+
+        myAttr.forEach(function(trait) {
+          myArray[trait] = d3.extent(data, function(d) {
+            return +d[trait];
+          });
+        });
+
+        var svg = d3.select("body")
+          .append("svg")
+          .attr("width", graphSize * n + spaceBetweenGraph)
+          .attr("height", graphSize * n + spaceBetweenGraph)
+          .append("g")
+          .attr("transform", "translate(" + spaceBetweenGraph + "," + spaceBetweenGraph / 2 + ")");
+
+
+        svg.selectAll(".y.axis")
+          .data(myAttr)
+          .enter()
+          .append("g")
+          .attr("class", "y axis")
+          .attr("transform", function(d, i) {
+            return "translate(0," + i * graphSize + ")";
+          })
+          .each(function(d) {
+            y.domain(myArray[d]);
+            d3.select(this).call(yAxis);
+          });
+
+        svg.selectAll(".x.axis")
+          .data(myAttr)
+          .enter()
+          .append("g")
+          .attr("class", "x axis")
+          .attr("transform", function(d, i) {
+            return "translate(" + (n - i - 1) * graphSize + ",0)";
+          })
+          .each(function(d) {
+            x.domain(myArray[d]);
+            d3.select(this).call(xAxis);
+          });
+
+        var aGraph = svg.selectAll(".aGraph")
+          .data(plot_points(myAttr, myAttr))
+          .enter()
+          .append("g")
+          .attr("transform", function(d) {
+            return "translate(" + (n - d.i - 1) * graphSize + "," + d.j * graphSize + ")";
+          })
+          .each(putPoints);
+
+
+        aGraph.filter(function(d) {
+            return d.i === d.j;
+          })
+          .append("text")
+          .attr("x", spaceBetweenGraph)
+          .attr("y", spaceBetweenGraph)
+          .attr("dy", ".71em")
+          .attr("font-size", "17px")
+          .text(function(d) {
+            return d.x;
+          });
+
+        function putPoints(p) {
+          var aGraph = d3.select(this);
+          y.domain(myArray[p.y]);
+          x.domain(myArray[p.x]);
+          aGraph.append("rect")
+            .attr("class", "box")
+            .attr("x", spaceBetweenGraph / 2)
+            .attr("y", spaceBetweenGraph / 2)
+            .attr("width", graphSize - spaceBetweenGraph)
+            .attr("height", graphSize - spaceBetweenGraph);
+          aGraph.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(1000)
+            .attr("cx", function(d) {
+              return x(d[p.x]);
+            })
+            .attr("cy", function(d) {
+              return y(d[p.y]);
+            })
+            .attr("r", 5)
+            .style("fill", function(d) {
+              if (d.Age == 1) {
+                return "#ffa600"
+              }
+              if (d.Age == 2) {
+                return "#ff6e54"
+              }
+              if (d.Age == 3) {
+                return "#dd5182"
+              }
+              if (d.Age == 4) {
+                return "#955196"
+              }
+              if (d.Age == 5) {
+                return "#444e86"
+              }
+              if (d.Age == 6) {
+                return "#003f5c"
+              }
+            })
+        }
+
+        function plot_points(attr1, attr2) {
+          var tempArray = []
+          var attr1size = attr1.length
+          var attr2size = attr2.length
+          for (var i = -1; ++i < attr1size;)
+            for (var j = -1; ++j < attr2size;) tempArray.push({
+              x: attr1[i],
+              i: i,
+              y: attr2[j],
+              j: j
+            });
+          return tempArray;
+        }
+
+      });
+    </script>
+</body>
+
+</html>

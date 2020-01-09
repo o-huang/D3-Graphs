@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Suicide Graphs</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+  <div>
+    <div class="toolbar">
+      <ul>
+        <li><a onclick="location.href = 'graph1.html';">Bivariate Scatterplot</a></li>
+        <li><a onclick="location.href = 'graph2.html';">10×10 Correlation Matrix </a></li>
+        <li><a onclick="location.href = 'graph3.html';">5×5 Scatter Plot Matrix </a></li>
+        <li><a onclick="location.href = 'graph4.html';">Parallel Coordinates Display With 10 Axes</a></li>
+        <li><a onclick="location.href = 'graph5.html';">PCA Plot</a></li>
+        <li><a onclick="location.href = 'graph6.html';">Biplot With 10 Projected Axes</a></li>
+        <li><a onclick="location.href = 'graph7.html';">MDS Display Of The Data</a></li>
+        <li><a onclick="location.href = 'graph8.html';">MDS Display Of The Attributes</a></li>
+      </ul>
+      <div />
+      <ul class="colorkey">
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 5-14 years old" />
+            <div class="color-box" style="background-color: #ffa600;"></div>
+          </div>
+        </li>
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 15-24 years old" />
+            <div class="color-box" style="background-color: #ff6e54;"></div>
+          </div>
+        </li>
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 25-34 years old" />
+            <div class="color-box" style="background-color: #dd5182;"></div>
+          </div>
+        </li>
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 35-54 years old" />
+            <div class="color-box" style="background-color: #955196;"></div>
+          </div>
+        </li>
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 55-74 years old" />
+            <div class="color-box" style="background-color: #444e86;"></div>
+          </div>
+        </li>
+        <li>
+          <div class="input-color">
+            <input type="text" value="Age Group: 75+ years old" />
+            <div class="color-box" style="background-color: #003f5c;"></div>
+          </div>
+        </li>
+      </ul>
+
+      <select id="xdrop">
+        <option value=""></option>
+        <option value="Age">Age</option>
+        <option value="Year">Year</option>
+        <option value="Population">Population</option>
+        <option value="Suicide_Number">Suicide_no</option>
+        <option value="GdpPerCapital">GDP Per Capital</option>
+      </select>
+
+      <select id=ydrop>
+        <option value=""></option>
+        <option value="Age">Age</option>
+        <option value="Year">Year</option>
+        <option value="Population">Population</option>
+        <option value="Suicide_Number">Suicide_no</option>
+        <option value="GdpPerCapital">GDP Per Capital</option>
+      </select>
+
+    </div>
+    <div id="age-tag">
+      <h5>Age Key: 1 = Age 5-14, 2 = Age 15-24, 3 = Age 25-34, 4 = Age 35-54, 5 = Age 55-74, 6 = Age 75+</h5>
+    </div>
+
+    <svg width="2000" height="1200" ></svg>
+
+    <script>
+      document.getElementById("age-tag").style.visibility = "hidden"
+      var svg = d3.select("svg").append('g').attr("transform", "translate(" + 150 + "," + 100 + ")");
+      document.getElementById('xdrop').onchange = function() {
+        if (document.getElementById("ydrop") != "" && document.getElementById("xdrop") != "") {
+          svg.selectAll('*').remove();
+          makeGraph(svg)
+          if (document.getElementById('xdrop').value == "Age") {
+            document.getElementById("age-tag").style.visibility = "visible"
+          } else {
+            document.getElementById("age-tag").style.visibility = "hidden"
+          }
+        }
+      }
+      document.getElementById("ydrop").onchange = function() {
+        if (document.getElementById("xdrop") != "" && document.getElementById("ydrop") != "") {
+          svg.selectAll('*').remove();
+          makeGraph(svg)
+          if (document.getElementById('ydrop').value == "Age") {
+            document.getElementById("age-tag").style.visibility = "visible"
+          } else {
+            document.getElementById("age-tag").style.visibility = "hidden"
+          }
+        }
+      }
+
+      function makeGraph(svg) {
+        d3.csv("data/United_States_suicide_no_2000_2010.csv", function(data) {
+          var width = 1100
+          var height = 800
+
+          var xdrop = document.getElementById("xdrop")
+          var ydrop = document.getElementById("ydrop")
+
+
+          var x = d3.scaleLinear()
+            .range([0, width])
+            .domain(d3.extent(data, function(d) {
+              return parseInt(eval("d." + xdrop.value));
+            })).nice();
+
+          var y = d3.scaleLinear().range([height, 0])
+            .domain(d3.extent(data, function(d) {
+              return parseInt(eval("d." + ydrop.value));
+            })).nice();
+
+          var xAxis = d3.axisBottom(x);
+          var yAxis = d3.axisLeft(y);
+
+          svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .selectAll("text")
+            .attr("font-size", "20px")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-65)");
+
+          svg.append("text")
+            .attr("transform", "translate(0,0)")
+            .attr("x", 500)
+            .attr("y", 1000)
+            .text(xdrop.value)
+            .attr("font-size", "20px")
+
+          svg.append("g")
+            .call(yAxis)
+            .selectAll("text")
+            .attr("font-size", "20px")
+
+          svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -400)
+            .attr("y", -120)
+            .text(ydrop.value)
+            .attr("font-size", "20px")
+
+          svg.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 7)
+            .transition()
+            .delay(function(d, i) {
+              return (i * 3)
+            })
+            .duration(2000)
+            .attr("cx", function(d) {
+              return x(eval("d." + xdrop.value))
+            })
+            .attr("cy", function(d) {
+              return y(eval("d." + ydrop.value))
+            })
+
+            .style("fill", function(d) {
+              if (d.Age == 1) {
+                return "#ffa600"
+              }
+              if (d.Age == 2) {
+                return "#ff6e54"
+              }
+              if (d.Age == 3) {
+                return "#dd5182"
+              }
+              if (d.Age == 4) {
+                return "#955196"
+              }
+              if (d.Age == 5) {
+                return "#444e86"
+              }
+              if (d.Age == 6) {
+                return "#003f5c"
+              }
+            })
+        })
+      }
+    </script>
+
+</body>
+
+</html>

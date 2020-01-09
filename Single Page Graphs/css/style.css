@@ -1,0 +1,50 @@
+.bar {
+  fill: #fb8122;
+}
+
+.highlight {
+  fill: #a05195;
+}
+
+.toolbar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: grey;
+}
+
+.toolbar li {
+  float: left;
+}
+
+.toolbar li a {
+  display: block;
+  color: #FF5733;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+.toolbar li a:hover {
+  background-color: #FFC300;
+}
+
+.colorkey .input-color {
+  position: relative;
+}
+
+.colorkey .input-color input {
+  padding-left: 30px;
+}
+
+.colorkey .input-color .color-box {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background-color: #ccc;
+  position: absolute;
+  left: 5px;
+  top: 5px;
+}
